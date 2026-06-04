@@ -1,0 +1,54 @@
+telegram:
+  bot_token: "YOUR_TELEGRAM_BOT_TOKEN"
+  allowed_users:
+    - 123456789  # 你的 Telegram 用户 ID
+  allowed_chats:
+    - -987654321  # 允许的群组 ID（可选）
+
+# 全局代理设置
+proxy:
+  port: 7897 # 为空则不使用代理，本地测试建议 7897
+
+exchanges:
+  binance:
+    sub1:
+      name: "Binance-Sub1 (Trading-Bot)"
+      api_key: "YOUR_BINANCE_API_KEY"
+      api_secret:"YOUR_BINANCE_API_SECRET"
+      testnet: false # 是否为测试网
+      leverage: 3
+      mode: "spot" # 初始模式
+    sub2:
+      name: "Binance-Sub2 (Trading-Bot)"
+      api_key: "YOUR_BINANCE_API_KEY"
+      api_secret:"YOUR_BINANCE_API_SECRET"
+      testnet: true
+      leverage: 10
+      mode: "spot"
+    sub3:
+      name: "Binance-Sub3 (Testnet)"
+      api_key:"YOUR_BINANCE_API_KEY"
+      api_secret: "YOUR_BINANCE_API_SECRET"
+      testnet: true
+      leverage: 3
+      mode: "future"
+      margin_mode: "isolated" # 保证金模式：isolated (逐仓) 或 cross (全仓)
+
+  okx:
+    sub1:
+      name: "OKX-Sub1 (MyMain)"
+      api_key:"YOUR_API_KEY"
+      api_secret: "YOUR_API_SECRET"
+      passphrase: "YOUR_PASSPHRASE"
+      testnet: true
+      leverage: 3
+      mode: "spot"
+    sub2:
+      name: "OKX-Testnet"
+      api_key: "YOUR_API_KEY"
+      api_secret: "YOUR_API_SECRET"
+      passphrase: "YOUR_PASSPHRASE"
+      testnet: true
+      leverage: 10
+      mode: "future"
+      margin_mode: "isolated"

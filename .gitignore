@@ -1,0 +1,46 @@
+# --- 工作助手 ---
+.workbuddy/
+.claude/
+
+# --- 配置文件（含 API Key） ---
+config.yaml
+
+# --- 会话状态 ---
+sessions.json
+
+# --- 项目文档 ---
+implementation-notes.md
+docs/
+
+# --- 日志 ---
+logs/
+*.log
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+
+# --- 虚拟环境（避免整个 venv 上传）---
+.venv/
+venv/
+env/
+ENV/
+
+# --- IDE ---
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# --- 系统文件 ---
+Thumbs.db
