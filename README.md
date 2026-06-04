@@ -74,13 +74,17 @@
 4. **精准显示**: 查询挂单时能正确抓取 `triggerPrice` 和 `workingType` (如 MARK_PRICE)，告别 `0.0000` 价格显示。
 
 ## 🛠 最近修复与优化 (2026-06-04)
+
 - **🏗️ 全面模块化重构**: 按 spot/futures × 命令拆分 Mixin，每个文件单一职责 ≤500 行
 - **⬆️ 新增 /margin 命令**: 合约模式下动态调整杠杆倍数和保证金模式（BN + OKX）
+- **📐 新增 /ctVal 命令**: 查询合约面值（每张 = ctVal × 标记价格），OKX 专用
+- **🛡 新增 --reduceonly**: /tp /sl /tpsl /ts 可选参数，只减仓不开新仓
 - **📊 现货 /position 优化**: 不再显示虚假多空数据，改为余额+可用+USD估值
-- **📜 /history 独立模块化**: 每个交易所的 spot/futures 独立 history.py，精度+30条
-- **🔌 OKX Adapter 层**: `exchanges/okx/adapter.py` 隔离 SDK 实现，为将来迁移 CLI/MCP 预留接口
-- **🐛 修复 BUG-1~BUG-10**: OKX posSide/ctVal、Binance trailing stop 类型判断、回调拆分等
-- **🌐 网络超时全局处理**: Telegram 代理、超时重试、用户友好提示
+- **📜 /history 独立模块化**: 每个交易所 spot/futures 独立 history.py，30条
+- **🔌 OKX Adapter 层**: `exchanges/okx/adapter.py` 隔离 SDK，为迁移 CLI/MCP 预留
+- **🌐 网络稳定性**: polling 指数退避重试、超时放宽、代理修复
+- **📝 日志系统**: 按日分割 TimedRotatingFileHandler，保留 30 天
+- **🐛 修复 BUG-1~BUG-10**: OKX posSide/ctVal、trailing stop 方向判断、回调拆分、API 参数错误等
 
 ## 🔒 安全建议
 1. **API 权限**: 仅开启交易权限，严禁开启提币权限。
