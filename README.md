@@ -86,7 +86,9 @@
 - **🔌 OKX Adapter 层**: `exchanges/okx/adapter.py` 隔离 SDK，为迁移 CLI/MCP 预留
 - **🌐 网络稳定性**: polling 指数退避重试、超时放宽、代理修复
 - **📝 日志系统**: 按日分割 TimedRotatingFileHandler，保留 30 天
-- **🐛 修复 BUG-1~BUG-10**: OKX posSide/ctVal、trailing stop 方向判断、回调拆分、API 参数错误等
+- **📤 新增 /close 命令**: 一键平仓，支持双向持仓 + 混合全仓/逐仓
+- **🔄 新增 /posmode 命令**: 查询/切换持仓模式（单向 ↔ 双向）
+- **🐛 修复 BUG-1~BUG-11**: OKX posSide/ctVal、trailing stop、/close 混合保证金、API 参数等
 
 ## 🔒 安全建议
 1. **API 权限**: 仅开启交易权限，严禁开启提币权限。
