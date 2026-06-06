@@ -183,6 +183,27 @@ class OKXClient(OKXSpotQueryMixin,
             'face_value': ct_val * mark_price if mark_price > 0 else 0,
         }
 
+    def close_position(self, symbol: str, mode: str, margin_mode: str) -> Dict[str, Any]:
+        """平仓 — 使用 OKX 原生 close_positions API，自动处理双向/单向持仓"""
+        inst_id = self.format_symbol(symbol, 'future')
+        pos_mode = self._posside_detector._get_pos_mode()
+        if pos_mode == 'long_short_mode':
+            # 双向持仓模式：逐个平仓 long 和 short
+            results = []
+            for ps in ['long', 'short']:
+                res = self._trade_api.close_positions(instId=inst_id, mgnMode=margin_mode, posSide=ps)
+                if res['code'] == '0':
+                    results.append(res)
+            if results:
+                return {'code': '0', 'status': 'success', 'count': len(results)}
+            return {'code': '-1', 'msg': '平仓失败'}
+        else:
+            # 单向持仓模式：不需要 posSide
+            res = self._trade_api.close_positions(instId=inst_id, mgnMode=margin_mode)
+            if res['code'] != '0':
+                raise Exception(f"平仓失败: {res.get('msg', '')}")
+            return {'code': '0', 'status': 'success'}
+
     def set_leverage(self, symbol: str, leverage: int, margin_mode: str) -> Dict[str, Any]:
         """设置合约杠杆和保证金模式"""
         inst_id = self.format_symbol(symbol, 'future')

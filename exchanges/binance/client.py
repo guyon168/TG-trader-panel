@@ -131,6 +131,44 @@ class BinanceClient(BinanceSpotQueryMixin,
         return self.place_trailing_stop_futures(symbol, side, amount, callback_ratio,
                                                  active_px, is_usdt, leverage, reduce_only)
 
+    # ———— 平仓方法路由 ————
+
+    def close_position(self, symbol: str, mode: str, margin_mode: str) -> Dict[str, Any]:
+        """平仓 — 用 reduceOnly 市价单平掉所有仓位"""
+        raw_s = self.format_symbol(symbol, 'future')
+        from binance.exceptions import BinanceAPIException
+        results = []
+        for ps in ['LONG', 'SHORT']:
+            try:
+                # 获取持仓量
+                positions = self.client.futures_position_information(symbol=raw_s)
+                for p in positions:
+                    pos_amt = float(p.get('positionAmt', 0))
+                    pos_side = p.get('positionSide', 'BOTH')
+                    if pos_amt == 0:
+                        continue
+                    if pos_side != 'BOTH' and pos_side != ps:
+                        continue
+                    # 反向市价单平仓
+                    close_side = 'SELL' if float(pos_amt) > 0 else 'BUY'
+                    close_params = {
+                        'symbol': raw_s,
+                        'side': close_side,
+                        'type': 'MARKET',
+                        'quantity': str(abs(pos_amt)),
+                        'reduceOnly': 'true',
+                    }
+                    if pos_side != 'BOTH':
+                        close_params['positionSide'] = pos_side
+                    res = self.client.futures_create_order(**close_params)
+                    results.append(res)
+            except BinanceAPIException as e:
+                if 'no position' not in str(e).lower():
+                    raise
+        if results:
+            return {'code': '0', 'status': 'success', 'count': len(results)}
+        raise Exception("未找到可平仓的持仓")
+
     # ———— 撤单方法路由 ————
 
     def cancel_orders(self, symbol: Optional[str], order_id: Optional[str],

@@ -65,3 +65,7 @@ class BaseExchangeClient(ABC):
     @abstractmethod
     def set_leverage(self, symbol: str, leverage: int, margin_mode: str) -> Dict[str, Any]:
         """设置合约杠杆和保证金模式"""
+
+    @abstractmethod
+    def close_position(self, symbol: str, mode: str, margin_mode: str) -> Dict[str, Any]:
+        """平仓（支持双向持仓模式）"""

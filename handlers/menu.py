@@ -94,6 +94,10 @@ class MenuHandler(BaseHandler):
 - 末尾加 `--reduceonly` 表示只减仓（不开新仓），不加则默认可开新仓
 - 适用于 /tp、/sl、/tpsl、/ts 四个命令
 
+━━━ 📤 平仓命令 ━━━
+/close <币种> — 一键平仓（市价反向单，双向持仓自动处理）
+  示例: `/close eth` — 平掉 ETH 所有持仓
+
 ━━━ 🚫 撤单命令 ━━━
 /cancel <ALL|币种|订单ID> — 撤销挂单
   示例: `/cancel ALL` — 撤销全部

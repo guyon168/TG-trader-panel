@@ -52,6 +52,7 @@
 | `/position` | 查询当前持仓 | `/position` | ✅(余额) | ✅ | ✅(余额) | ✅ |
 | `/history` | 查询历史记录 | `/history` | ✅ | ✅ | ✅ | ✅ |
 | `/cancel` | 智能撤单 | `/cancel <ALL\|币种\|ID>` | ✅ | ✅ | ✅ | ✅ |
+| `/close` | 一键平仓（合约） | `/close eth` | — | ✅ | — | ✅ |
 | `/margin` | 合约杠杆/保证金设置 | `/margin btc 5 isolated` | — | ✅ | — | ✅ |
 | `/ctVal` | 合约面值查询（每张价值） | `/ctVal btc` | — | — | — | ✅ |
 | `/p` | 现货+合约双报价 | `/p btc` | ✅ | ✅ | ✅ | ✅ |

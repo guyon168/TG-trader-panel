@@ -101,3 +101,26 @@ class TradeHandler(BaseHandler):
                 await self._reply(update, "🌐 限价下单失败：网络连接超时，请确认是否已挂单后用 /orders 检查")
             else:
                 await self._reply(update, f"❌ 下单失败: {str(e)}")
+
+    async def close_position(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """/close <币种> — 平仓"""
+        if not await self._check_auth(update, context):
+            return
+        if not context.args:
+            return await self._reply(update, "❌ 使用方法: /close <币种>\n示例: /close eth")
+
+        client = self.account_manager.get_client(update.effective_chat.id)
+        if not client:
+            return await self._reply(update, "❌ 请先选择账户")
+
+        symbol = context.args[0].upper()
+        try:
+            res = client.close_position(symbol)
+            await self._reply(update,
+                f"✅ {symbol} 平仓指令已提交\n"
+                f"💡 用 /position 确认是否平仓成功")
+        except Exception as e:
+            if _is_network_error(e):
+                await self._reply(update, "🌐 平仓失败：网络连接超时")
+            else:
+                await self._reply(update, f"❌ 平仓失败: {str(e)}")

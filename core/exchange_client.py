@@ -80,6 +80,12 @@ class ExchangeClient:
             raise Exception("合约面值查询仅支持 OKX")
         return self._sdk.get_ctval_info(symbol)
 
+    def close_position(self, symbol: str) -> Dict[str, Any]:
+        """平仓（支持双向持仓模式）"""
+        if self.mode != 'future':
+            raise Exception("仅合约模式支持平仓")
+        return self._sdk.close_position(symbol, self.mode, self.margin_mode)
+
     # ======================== 查询 ========================
 
     def get_price(self, symbol: str, mode_override: Optional[str] = None) -> float:
