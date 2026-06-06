@@ -55,6 +55,7 @@
 | `/close` | 一键平仓（合约） | `/close eth` | — | ✅ | — | ✅ |
 | `/margin` | 合约杠杆/保证金设置 | `/margin btc 5 isolated` | — | ✅ | — | ✅ |
 | `/ctVal` | 合约面值查询（每张价值） | `/ctVal btc` | — | — | — | ✅ |
+| `/posmode` | 查询/切换持仓模式 | `/posmode long_short_mode` | — | ✅ | — | ✅ |
 | `/p` | 现货+合约双报价 | `/p btc` | ✅ | ✅ | ✅ | ✅ |
 
 *注1：`/cancel` 支持极度智能的路由。输入纯数字如 `/cancel 18482` 走按 ID 撤单；输入 `/cancel BNB` 或 `/cancel BNB-USDT-SWAP` 走按交易对批量撤单。*

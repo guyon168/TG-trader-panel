@@ -86,6 +86,18 @@ class ExchangeClient:
             raise Exception("仅合约模式支持平仓")
         return self._sdk.close_position(symbol, self.mode, self.margin_mode)
 
+    def get_position_mode(self) -> str:
+        """查询当前持仓模式"""
+        if self.mode != 'future':
+            raise Exception("仅合约模式支持持仓模式")
+        return self._sdk.get_position_mode()
+
+    def set_position_mode(self, pos_mode: str) -> Dict[str, Any]:
+        """切换持仓模式"""
+        if self.mode != 'future':
+            raise Exception("仅合约模式支持持仓模式")
+        return self._sdk.set_position_mode(pos_mode)
+
     # ======================== 查询 ========================
 
     def get_price(self, symbol: str, mode_override: Optional[str] = None) -> float:

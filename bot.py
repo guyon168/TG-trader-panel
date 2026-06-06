@@ -147,6 +147,7 @@ class TraderBot:
         app.add_handler(CommandHandler('trailing', self.trailing.set_trailing_stop))
         app.add_handler(CommandHandler('p', self.price.price))
         app.add_handler(CommandHandler('margin', self.margin.margin))
+        app.add_handler(CommandHandler('posmode', self.margin.posmode))
         app.add_handler(CommandHandler('close', self.trade.close_position))
         app.add_handler(CommandHandler('ctval', self.query.ctval))
         app.add_handler(CommandHandler('ctVal', self.query.ctval))

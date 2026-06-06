@@ -44,6 +44,10 @@ class MenuHandler(BaseHandler):
   示例: `/margin eth 10 cross` — ETH 10倍全仓
 /ctVal <币种> — 查询合约面值（每张价值）
   示例: `/ctVal btc` — 查看 BTC-USDT-SWAP 每张价值
+/posmode — 查询/切换持仓模式（单向/双向）
+  不带参数查看，带参数切换: /posmode net_mode 或 /posmode long_short_mode
+  示例: `/posmode` — 查看当前模式
+  示例: `/posmode long_short_mode` — 切换为双向持仓
 
 💡 **OKX 合约注意**: /m、/l 等下单命令的数量是**合约张数**，
   不是币种数量。如 `/m buy btc 1` = 买入 1 张 BTC 合约。
@@ -140,6 +144,12 @@ class MenuHandler(BaseHandler):
                 mode_btns.append(InlineKeyboardButton("📐 合约面值", callback_data="menu_ctval"))
             keyboard.append(mode_btns)
 
+            if info['mode'] == 'future':
+                keyboard.append([
+                    InlineKeyboardButton("📤 一键平仓", callback_data="menu_close"),
+                    InlineKeyboardButton("🔄 持仓模式", callback_data="menu_posmode"),
+                ])
+
             keyboard.append([
                 InlineKeyboardButton("💰 查询余额", callback_data="action_balance"),
                 InlineKeyboardButton("📊 查询持仓", callback_data="action_position")
@@ -210,6 +220,10 @@ class MenuHandler(BaseHandler):
             await self._show_leverage_prompt(update, context)
         elif data == "menu_ctval":
             await self._show_ctval_prompt(update, context)
+        elif data == "menu_close":
+            await self._show_close_prompt(update, context)
+        elif data == "menu_posmode":
+            await self._show_posmode_prompt(update, context)
         elif data == "margin_cross":
             await self._set_margin_mode_callback(update, context, 'cross')
         elif data == "margin_isolated":
@@ -341,6 +355,42 @@ class MenuHandler(BaseHandler):
             f"• `/ctVal eth` — ETH-USDT-SWAP 面值\n\n"
             f"💡 OKX 合约下单数量为**张数**，\n"
             f"如 `/m buy btc 1` = 买入 1 张"
+        )
+        await update.callback_query.edit_message_text(text, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode='Markdown')
+
+    async def _show_close_prompt(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """显示平仓引导"""
+        keyboard = [[InlineKeyboardButton("⬅️ 返回主菜单", callback_data="menu_main")]]
+        text = (
+            f"📤 **一键平仓**\n\n"
+            f"使用命令:\n"
+            f"`/close <币种>`\n\n"
+            f"示例:\n"
+            f"• `/close eth` — 平掉 ETH 所有持仓\n"
+            f"• `/close btc` — 平掉 BTC 所有持仓\n\n"
+            f"💡 双向持仓自动处理 long+short"
+        )
+        await update.callback_query.edit_message_text(text, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode='Markdown')
+
+    async def _show_posmode_prompt(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """显示持仓模式引导"""
+        chat_id = update.effective_chat.id
+        client = self.account_manager.get_client(chat_id)
+        current = '未知'
+        try:
+            current = client.get_position_mode()
+        except Exception:
+            pass
+        label_map = {'net_mode': '单向持仓', 'long_short_mode': '双向持仓'}
+        label = label_map.get(current, current)
+        keyboard = [[InlineKeyboardButton("⬅️ 返回主菜单", callback_data="menu_main")]]
+        text = (
+            f"🔄 **持仓模式**\n\n"
+            f"当前: **{label}** (`{current}`)\n\n"
+            f"使用命令切换:\n"
+            f"`/posmode net_mode` — 单向持仓\n"
+            f"`/posmode long_short_mode` — 双向持仓\n\n"
+            f"💡 切换前需平掉所有仓位"
         )
         await update.callback_query.edit_message_text(text, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode='Markdown')
 

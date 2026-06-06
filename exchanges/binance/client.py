@@ -169,6 +169,23 @@ class BinanceClient(BinanceSpotQueryMixin,
             return {'code': '0', 'status': 'success', 'count': len(results)}
         raise Exception("未找到可平仓的持仓")
 
+    def get_position_mode(self) -> str:
+        """查询当前持仓模式"""
+        res = self.client.futures_get_position_mode()
+        dual = res.get('dualSidePosition', False)
+        return 'long_short_mode' if dual else 'net_mode'
+
+    def set_position_mode(self, pos_mode: str) -> Dict[str, Any]:
+        """切换持仓模式"""
+        if pos_mode == 'long_short_mode':
+            dual = 'true'
+        elif pos_mode == 'net_mode':
+            dual = 'false'
+        else:
+            raise Exception("持仓模式仅支持 net_mode 或 long_short_mode")
+        res = self.client.futures_change_position_mode(dualSidePosition=dual)
+        return {'code': '0' if res.get('code') == 200 else '-1', 'pos_mode': pos_mode}
+
     # ———— 撤单方法路由 ————
 
     def cancel_orders(self, symbol: Optional[str], order_id: Optional[str],

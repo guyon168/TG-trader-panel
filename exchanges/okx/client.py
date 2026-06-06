@@ -214,6 +214,31 @@ class OKXClient(OKXSpotQueryMixin,
             self._adapter.set_leverage(**kwargs)
             kwargs['posSide'] = 'short'
         res = self._adapter.set_leverage(**kwargs)
+        return {'leverage': leverage, 'margin_mode': margin_mode, 'symbol': inst_id}
+
+    def get_position_mode(self) -> str:
+        """查询当前持仓模式"""
+        return self._posside_detector._get_pos_mode()
+
+    def set_position_mode(self, pos_mode: str) -> Dict[str, Any]:
+        """切换持仓模式"""
+        if pos_mode not in ('net_mode', 'long_short_mode'):
+            raise Exception("持仓模式仅支持 net_mode 或 long_short_mode")
+        res = self._account_api.set_position_mode(pos_mode)
+        if res['code'] != '0':
+            raise Exception(f"切换失败: {res.get('msg', '')}")
+        # 清除 posSide 缓存
+        self._posside_detector._pos_mode = pos_mode
+        return {'code': '0', 'pos_mode': pos_mode}
+        """设置合约杠杆和保证金模式"""
+        inst_id = self.format_symbol(symbol, 'future')
+        pos_side = self._posside_detector._get_pos_mode()
+        kwargs: Dict[str, Any] = {'instId': inst_id, 'lever': str(leverage), 'mgnMode': margin_mode}
+        if pos_side == 'long_short_mode':
+            kwargs['posSide'] = 'long'
+            self._adapter.set_leverage(**kwargs)
+            kwargs['posSide'] = 'short'
+        res = self._adapter.set_leverage(**kwargs)
         if res['code'] != '0':
             raise Exception(f"OKX 设置杠杆失败: {res.get('msg', '未知错误')}")
         return {'symbol': inst_id, 'leverage': leverage, 'margin_mode': margin_mode}

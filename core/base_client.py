@@ -69,3 +69,11 @@ class BaseExchangeClient(ABC):
     @abstractmethod
     def close_position(self, symbol: str, mode: str, margin_mode: str) -> Dict[str, Any]:
         """平仓（支持双向持仓模式）"""
+
+    @abstractmethod
+    def get_position_mode(self) -> str:
+        """查询当前持仓模式: 'net_mode' / 'long_short_mode'"""
+
+    @abstractmethod
+    def set_position_mode(self, pos_mode: str) -> Dict[str, Any]:
+        """切换持仓模式: 'net_mode' ↔ 'long_short_mode'"""
