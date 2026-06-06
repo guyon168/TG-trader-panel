@@ -116,9 +116,13 @@ class TradeHandler(BaseHandler):
         symbol = context.args[0].upper()
         try:
             res = client.close_position(symbol)
-            await self._reply(update,
-                f"✅ {symbol} 平仓指令已提交\n"
-                f"💡 用 /position 确认是否平仓成功")
+            count = res.get('count', 0)
+            errors = res.get('errors', [])
+            text = f"✅ {symbol} 已平 {count} 个仓位"
+            if errors:
+                text += f"\n⚠️ {len(errors)} 个仓位跳过: {'; '.join(errors[:3])}"
+            text += "\n💡 用 /position 确认"
+            await self._reply(update, text)
         except Exception as e:
             if _is_network_error(e):
                 await self._reply(update, "🌐 平仓失败：网络连接超时")

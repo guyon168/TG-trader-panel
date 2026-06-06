@@ -184,25 +184,37 @@ class OKXClient(OKXSpotQueryMixin,
         }
 
     def close_position(self, symbol: str, mode: str, margin_mode: str) -> Dict[str, Any]:
-        """平仓 — 使用 OKX 原生 close_positions API，自动处理双向/单向持仓"""
+        """平仓 — 先查实际持仓，按真实 mgnMode + posSide 逐个平"""
         inst_id = self.format_symbol(symbol, 'future')
-        pos_mode = self._posside_detector._get_pos_mode()
-        if pos_mode == 'long_short_mode':
-            # 双向持仓模式：逐个平仓 long 和 short
-            results = []
-            for ps in ['long', 'short']:
-                res = self._trade_api.close_positions(instId=inst_id, mgnMode=margin_mode, posSide=ps)
+
+        # 查询该币种所有持仓
+        pos_res = self._account_api.get_positions(instId=inst_id, instType='SWAP')
+        if pos_res['code'] != '0':
+            raise Exception(f"查询持仓失败: {pos_res.get('msg', '')}")
+
+        closed = 0
+        errors = []
+        for p in pos_res.get('data', []):
+            pos_qty = float(p.get('pos', 0) or 0)
+            if abs(pos_qty) < 0.00001:
+                continue
+            real_mgn = p.get('mgnMode', margin_mode)
+            real_ps = p.get('posSide', '')
+            try:
+                kwargs = {'instId': inst_id, 'mgnMode': real_mgn}
+                if real_ps and real_ps != 'net':
+                    kwargs['posSide'] = real_ps
+                res = self._trade_api.close_positions(**kwargs)
                 if res['code'] == '0':
-                    results.append(res)
-            if results:
-                return {'code': '0', 'status': 'success', 'count': len(results)}
-            return {'code': '-1', 'msg': '平仓失败'}
-        else:
-            # 单向持仓模式：不需要 posSide
-            res = self._trade_api.close_positions(instId=inst_id, mgnMode=margin_mode)
-            if res['code'] != '0':
-                raise Exception(f"平仓失败: {res.get('msg', '')}")
-            return {'code': '0', 'status': 'success'}
+                    closed += 1
+                else:
+                    errors.append(f"{real_ps or 'net'}({real_mgn}): {res.get('msg', '')}")
+            except Exception as e:
+                errors.append(f"{real_ps or 'net'}({real_mgn}): {str(e)}")
+
+        if closed == 0 and errors:
+            raise Exception(f"平仓失败: {'; '.join(errors)}")
+        return {'code': '0', 'status': 'success', 'count': closed, 'errors': errors}
 
     def set_leverage(self, symbol: str, leverage: int, margin_mode: str) -> Dict[str, Any]:
         """设置合约杠杆和保证金模式"""

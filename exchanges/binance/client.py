@@ -134,40 +134,37 @@ class BinanceClient(BinanceSpotQueryMixin,
     # ———— 平仓方法路由 ————
 
     def close_position(self, symbol: str, mode: str, margin_mode: str) -> Dict[str, Any]:
-        """平仓 — 用 reduceOnly 市价单平掉所有仓位"""
+        """平仓 — 先查实际持仓，按真实 positionSide 逐个下 reduceOnly 市价单"""
         raw_s = self.format_symbol(symbol, 'future')
         from binance.exceptions import BinanceAPIException
-        results = []
-        for ps in ['LONG', 'SHORT']:
+        positions = self.client.futures_position_information(symbol=raw_s)
+        closed = 0
+        errors = []
+        for p in positions:
+            pos_amt = float(p.get('positionAmt', 0))
+            if abs(pos_amt) < 0.00001:
+                continue
+            pos_side = p.get('positionSide', 'BOTH')
+            close_side = 'SELL' if pos_amt > 0 else 'BUY'
             try:
-                # 获取持仓量
-                positions = self.client.futures_position_information(symbol=raw_s)
-                for p in positions:
-                    pos_amt = float(p.get('positionAmt', 0))
-                    pos_side = p.get('positionSide', 'BOTH')
-                    if pos_amt == 0:
-                        continue
-                    if pos_side != 'BOTH' and pos_side != ps:
-                        continue
-                    # 反向市价单平仓
-                    close_side = 'SELL' if float(pos_amt) > 0 else 'BUY'
-                    close_params = {
-                        'symbol': raw_s,
-                        'side': close_side,
-                        'type': 'MARKET',
-                        'quantity': str(abs(pos_amt)),
-                        'reduceOnly': 'true',
-                    }
-                    if pos_side != 'BOTH':
-                        close_params['positionSide'] = pos_side
-                    res = self.client.futures_create_order(**close_params)
-                    results.append(res)
+                order_params = {
+                    'symbol': raw_s,
+                    'side': close_side,
+                    'type': 'MARKET',
+                    'quantity': str(abs(pos_amt)),
+                    'reduceOnly': 'true',
+                }
+                if pos_side != 'BOTH':
+                    order_params['positionSide'] = pos_side
+                res = self.client.futures_create_order(**order_params)
+                closed += 1
             except BinanceAPIException as e:
-                if 'no position' not in str(e).lower():
-                    raise
-        if results:
-            return {'code': '0', 'status': 'success', 'count': len(results)}
-        raise Exception("未找到可平仓的持仓")
+                errors.append(f"{pos_side}({abs(pos_amt)}张): {str(e)}")
+            except Exception as e:
+                errors.append(f"{pos_side}({abs(pos_amt)}张): {str(e)}")
+        if closed == 0 and errors:
+            raise Exception(f"平仓失败: {'; '.join(errors)}")
+        return {'code': '0', 'status': 'success', 'count': closed, 'errors': errors}
 
     def get_position_mode(self) -> str:
         """查询当前持仓模式"""
